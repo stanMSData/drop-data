@@ -14,15 +14,19 @@
     h1 {
       text-align: center;
     }
-    #searchInput {
-      width: 100%;
-      max-width: 400px;
-      margin: 20px auto;
-      display: block;
-      padding: 10px;
+    .search-controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin: 20px 0;
+    }
+    .search-controls input, .search-controls select {
+      padding: 8px;
       font-size: 16px;
       border: 1px solid #ccc;
       border-radius: 6px;
+      min-width: 180px;
     }
     #prompt, #noResults {
       text-align: center;
@@ -52,8 +56,16 @@
 <body>
 
 <h1>Enemy Drops</h1>
-<input type="text" id="searchInput" placeholder="Search by enemy, item, or equip type...">
-<div id="prompt">Type in the box above to search for enemy drops.</div>
+<div class="search-controls">
+  <input type="text" id="searchInput" placeholder="Search...">
+  <select id="filterType">
+    <option value="all">All Fields</option>
+    <option value="enemy">Enemy Name</option>
+    <option value="item">Item Name</option>
+    <option value="item_type">Equip Type</option>
+  </select>
+</div>
+<div id="prompt">Type in the box above and select a filter to search for enemy drops.</div>
 
 <table id="dropsTable" style="display: none;">
   <thead>
@@ -61,6 +73,7 @@
       <th>Enemy</th>
       <th>Item</th>
       <th>Equip Type</th>
+      <th>Drop Chance</th>
     </tr>
   </thead>
   <tbody></tbody>
@@ -107,26 +120,40 @@
 
     data.forEach(row => {
       const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${row.enemy}</td><td>${row.item}</td><td>${row.item_type}</td>`;
+      tr.innerHTML = `<td>${row.enemy}</td>
+                      <td>${row.item}</td>
+                      <td>${row.item_type}</td>
+                      <td>${row.chance}</td>`;
       tbody.appendChild(tr);
     });
   }
 
   function searchTable() {
     const term = document.getElementById("searchInput").value.toLowerCase().trim();
+    const filterType = document.getElementById("filterType").value;
+
     if (term === "") {
       renderTable([]);
       return;
     }
-    const filtered = allRows.filter(row =>
-      row.enemy.toLowerCase().includes(term) ||
-      row.item.toLowerCase().includes(term) ||
-      row.item_type.toLowerCase().includes(term)
-    );
+
+    let filtered;
+    if (filterType === "all") {
+      filtered = allRows.filter(row =>
+        row.enemy.toLowerCase().includes(term) ||
+        row.item.toLowerCase().includes(term) ||
+        row.item_type.toLowerCase().includes(term)
+      );
+    } else {
+      filtered = allRows.filter(row =>
+        row[filterType].toLowerCase().includes(term)
+      );
+    }
     renderTable(filtered);
   }
 
   document.getElementById("searchInput").addEventListener("input", searchTable);
+  document.getElementById("filterType").addEventListener("change", searchTable);
 
   // Load data and show prompt
   loadData().then(() => renderTable([]));
