@@ -192,10 +192,12 @@
 
       data.forEach(row => {
         const tr = document.createElement("tr");
+        const chanceValue = (row.chance / 1000000) * 100;
+        const formattedChance = chanceValue < 0.01 ? "&lt; 0.01%" : `${chanceValue.toFixed(2)}%`;
         tr.innerHTML = `<td>${row.enemy}</td>
                         <td>${row.item}</td>
                         <td>${row.item_type}</td>
-                        <td>${row.chance}</td>`;
+                        <td>${formattedChance}</td>`;
         tbody.appendChild(tr);
       });
     }
