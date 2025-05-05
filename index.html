@@ -3,161 +3,282 @@
 <head>
   <meta charset="UTF-8">
   <title>Enemy Drops Search</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --primary: #007acc;
+      --background: #f4f6f8;
+      --card-bg: #fff;
+      --text: #222;
+      --input-bg: #f0f0f0;
+      --input-border: #ccc;
+      --table-header: #007acc;
+      --table-header-text: #fff;
+      --table-row-hover: #f1f1f1;
+      --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    }
+    body.dark-mode {
+      --primary: #4db8ff;
+      --background: #181c22;
+      --card-bg: #23272f;
+      --text: #e0e0e0;
+      --input-bg: #23272f;
+      --input-border: #444;
+      --table-header: #23272f;
+      --table-header-text: #4db8ff;
+      --table-row-hover: #23272f;
+      --shadow: 0 2px 16px rgba(0,0,0,0.25);
+    }
     body {
       font-family: 'Roboto', sans-serif;
-      background-color: #f4f6f8;
-      padding: 20px;
-      color: #333;
+      background-color: var(--background);
+      color: var(--text);
+      padding: 0;
+      margin: 0;
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+    .container {
+      max-width: 900px;
+      margin: 40px auto 0 auto;
+      padding: 24px;
+      background: var(--card-bg);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      transition: background 0.3s;
+      position: relative;
     }
     h1 {
       text-align: center;
+      margin-top: 0;
+      font-weight: 700;
+      letter-spacing: 1px;
     }
     .search-controls {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 10px;
-      margin: 20px 0;
+      margin: 24px 0 12px 0;
     }
     .search-controls input, .search-controls select {
-      padding: 8px;
+      padding: 10px 14px;
       font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+      border: 1.5px solid var(--input-border);
+      border-radius: 8px;
+      background: var(--input-bg);
+      color: var(--text);
+      outline: none;
+      transition: border 0.2s, background 0.3s, color 0.3s;
       min-width: 180px;
+    }
+    .search-controls input:focus, .search-controls select:focus {
+      border-color: var(--primary);
     }
     #prompt, #noResults {
       text-align: center;
-      margin-top: 20px;
+      margin-top: 24px;
       color: #888;
       font-style: italic;
+      font-size: 1.1em;
+      letter-spacing: 0.2px;
     }
     table {
       width: 100%;
-      border-collapse: collapse;
+      border-collapse: separate;
+      border-spacing: 0;
       margin-top: 20px;
-      background: white;
+      background: var(--card-bg);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: background 0.3s;
     }
     th, td {
-      padding: 10px;
-      border: 1px solid #ddd;
+      padding: 14px 12px;
+      border-bottom: 1px solid var(--input-border);
+      text-align: left;
+      font-size: 1em;
     }
     th {
-      background-color: #007acc;
-      color: white;
+      background-color: var(--table-header);
+      color: var(--table-header-text);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid var(--primary);
+    }
+    tr:last-child td {
+      border-bottom: none;
     }
     tr:hover {
-      background-color: #f1f1f1;
+      background-color: var(--table-row-hover);
+      transition: background 0.2s;
+    }
+    .dark-toggle {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      background: var(--input-bg);
+      color: var(--primary);
+      border: none;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      cursor: pointer;
+      font-size: 1.5em;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s, color 0.3s;
+    }
+    .dark-toggle:focus {
+      outline: 2px solid var(--primary);
+    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 8px;
+      }
+      .search-controls input, .search-controls select {
+        min-width: 120px;
+        font-size: 15px;
+      }
+      th, td {
+        padding: 8px 6px;
+        font-size: 0.95em;
+      }
+      .dark-toggle {
+        top: 10px;
+        right: 10px;
+        width: 38px;
+        height: 38px;
+        font-size: 1.2em;
+      }
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <button class="dark-toggle" id="darkToggle" title="Toggle dark mode">🌙</button>
+    <h1>Enemy Drops</h1>
+    <div class="search-controls">
+      <select id="filterType">
+        <option value="all">All Fields</option>
+        <option value="enemy">Enemy Name</option>
+        <option value="item">Item Name</option>
+        <option value="item_type">Equip Type</option>
+      </select>
+      <input type="text" id="searchInput" placeholder="Type to search...">
+    </div>
+    <div id="prompt">Type in the box above and select a filter to search for enemy drops.</div>
+    <table id="dropsTable" style="display: none;">
+      <thead>
+        <tr>
+          <th>Enemy</th>
+          <th>Item</th>
+          <th>Equip Type</th>
+          <th>Drop Chance</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div id="noResults" style="display: none;">No results found.</div>
+  </div>
+  <script>
+    let allRows = [];
 
-<h1>Enemy Drops</h1>
-<div class="search-controls">
-  <input type="text" id="searchInput" placeholder="Search...">
-  <select id="filterType">
-    <option value="all">All Fields</option>
-    <option value="enemy">Enemy Name</option>
-    <option value="item">Item Name</option>
-    <option value="item_type">Equip Type</option>
-  </select>
-</div>
-<div id="prompt">Type in the box above and select a filter to search for enemy drops.</div>
-
-<table id="dropsTable" style="display: none;">
-  <thead>
-    <tr>
-      <th>Enemy</th>
-      <th>Item</th>
-      <th>Equip Type</th>
-      <th>Drop Chance</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
-
-<div id="noResults" style="display: none;">No results found.</div>
-
-<script>
-  let allRows = [];
-
-  async function loadData() {
-    try {
-      const response = await fetch('enemy_drops_5-4-2025-9pm.json');
-      const dataObj = await response.json();
-      allRows = dataObj.rows;
-    } catch (error) {
-      console.error("Error loading JSON:", error);
+    async function loadData() {
+      try {
+        const response = await fetch('enemy_drops_5-4-2025-9pm.json');
+        const dataObj = await response.json();
+        allRows = dataObj.rows;
+      } catch (error) {
+        console.error("Error loading JSON:", error);
+      }
     }
-  }
 
-  function renderTable(data) {
-    const table = document.getElementById("dropsTable");
-    const tbody = table.querySelector("tbody");
-    const noResults = document.getElementById("noResults");
-    const prompt = document.getElementById("prompt");
+    function renderTable(data) {
+      const table = document.getElementById("dropsTable");
+      const tbody = table.querySelector("tbody");
+      const noResults = document.getElementById("noResults");
+      const prompt = document.getElementById("prompt");
 
-    tbody.innerHTML = '';
+      tbody.innerHTML = '';
 
-    if (data.length === 0) {
-      table.style.display = "none";
-      if (document.getElementById("searchInput").value.trim() === "") {
-        prompt.style.display = "block";
-        noResults.style.display = "none";
+      if (data.length === 0) {
+        table.style.display = "none";
+        if (document.getElementById("searchInput").value.trim() === "") {
+          prompt.style.display = "block";
+          noResults.style.display = "none";
+        } else {
+          prompt.style.display = "none";
+          noResults.style.display = "block";
+        }
+        return;
       } else {
         prompt.style.display = "none";
-        noResults.style.display = "block";
+        noResults.style.display = "none";
+        table.style.display = "table";
       }
-      return;
-    } else {
-      prompt.style.display = "none";
-      noResults.style.display = "none";
-      table.style.display = "table";
+
+      data.forEach(row => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${row.enemy}</td>
+                        <td>${row.item}</td>
+                        <td>${row.item_type}</td>
+                        <td>${row.chance}</td>`;
+        tbody.appendChild(tr);
+      });
     }
 
-    data.forEach(row => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${row.enemy}</td>
-                      <td>${row.item}</td>
-                      <td>${row.item_type}</td>
-                      <td>${row.chance}</td>`;
-      tbody.appendChild(tr);
+    function searchTable() {
+      const term = document.getElementById("searchInput").value.toLowerCase().trim();
+      const filterType = document.getElementById("filterType").value;
+
+      if (term === "") {
+        renderTable([]);
+        return;
+      }
+
+      let filtered;
+      if (filterType === "all") {
+        filtered = allRows.filter(row =>
+          row.enemy.toLowerCase().includes(term) ||
+          row.item.toLowerCase().includes(term) ||
+          row.item_type.toLowerCase().includes(term)
+        );
+      } else {
+        filtered = allRows.filter(row =>
+          row[filterType].toLowerCase().includes(term)
+        );
+      }
+      renderTable(filtered);
+    }
+
+    document.getElementById("searchInput").addEventListener("input", searchTable);
+    document.getElementById("filterType").addEventListener("change", searchTable);
+
+    const darkToggle = document.getElementById('darkToggle');
+    function setDarkMode(on) {
+      if (on) {
+        document.body.classList.add('dark-mode');
+        darkToggle.textContent = '☀️';
+        localStorage.setItem('darkMode', 'on');
+      } else {
+        document.body.classList.remove('dark-mode');
+        darkToggle.textContent = '🌙';
+        localStorage.setItem('darkMode', 'off');
+      }
+    }
+    darkToggle.addEventListener('click', () => {
+      setDarkMode(!document.body.classList.contains('dark-mode'));
     });
-  }
-
-  function searchTable() {
-    const term = document.getElementById("searchInput").value.toLowerCase().trim();
-    const filterType = document.getElementById("filterType").value;
-
-    if (term === "") {
-      renderTable([]);
-      return;
+    if (localStorage.getItem('darkMode') === 'on') {
+      setDarkMode(true);
     }
 
-    let filtered;
-    if (filterType === "all") {
-      filtered = allRows.filter(row =>
-        row.enemy.toLowerCase().includes(term) ||
-        row.item.toLowerCase().includes(term) ||
-        row.item_type.toLowerCase().includes(term)
-      );
-    } else {
-      filtered = allRows.filter(row =>
-        row[filterType].toLowerCase().includes(term)
-      );
-    }
-    renderTable(filtered);
-  }
-
-  document.getElementById("searchInput").addEventListener("input", searchTable);
-  document.getElementById("filterType").addEventListener("change", searchTable);
-
-  // Load data and show prompt
-  loadData().then(() => renderTable([]));
-</script>
-
+    // Load data and show prompt
+    loadData().then(() => renderTable([]));
+  </script>
 </body>
 </html>
