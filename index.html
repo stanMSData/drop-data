@@ -6,28 +6,17 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --primary: #007acc;
-      --background: #f4f6f8;
-      --card-bg: #fff;
-      --text: #222;
-      --input-bg: #f0f0f0;
-      --input-border: #ccc;
-      --table-header: #007acc;
-      --table-header-text: #fff;
-      --table-row-hover: #f1f1f1;
-      --shadow: 0 2px 12px rgba(0,0,0,0.08);
-    }
-    body.dark-mode {
       --primary: #4db8ff;
       --background: #181c22;
       --card-bg: #23272f;
       --text: #e0e0e0;
       --input-bg: #23272f;
-      --input-border: #444;
+      --input-border: #4db8ff;
       --table-header: #23272f;
       --table-header-text: #4db8ff;
       --table-row-hover: #23272f;
       --shadow: 0 2px 16px rgba(0,0,0,0.25);
+      --container-border: 2px solid #4db8ff;
     }
     body {
       font-family: 'Roboto', sans-serif;
@@ -45,14 +34,16 @@
       background: var(--card-bg);
       border-radius: 16px;
       box-shadow: var(--shadow);
-      transition: background 0.3s;
+      transition: background 0.3s, border 0.3s;
       position: relative;
+      border: var(--container-border);
     }
     h1 {
       text-align: center;
       margin-top: 0;
       font-weight: 700;
       letter-spacing: 1px;
+      color: var(--primary);
     }
     .search-controls {
       display: flex;
@@ -78,7 +69,7 @@
     #prompt, #noResults {
       text-align: center;
       margin-top: 24px;
-      color: #888;
+      color: #7ecbff;
       font-style: italic;
       font-size: 1.1em;
       letter-spacing: 0.2px;
@@ -111,29 +102,8 @@
       border-bottom: none;
     }
     tr:hover {
-      background-color: var(--table-row-hover);
+      background-color: #1a1e24;
       transition: background 0.2s;
-    }
-    .dark-toggle {
-      position: absolute;
-      top: 24px;
-      right: 24px;
-      background: var(--input-bg);
-      color: var(--primary);
-      border: none;
-      border-radius: 50%;
-      width: 44px;
-      height: 44px;
-      cursor: pointer;
-      font-size: 1.5em;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.3s, color 0.3s;
-    }
-    .dark-toggle:focus {
-      outline: 2px solid var(--primary);
     }
     @media (max-width: 600px) {
       .container {
@@ -147,19 +117,11 @@
         padding: 8px 6px;
         font-size: 0.95em;
       }
-      .dark-toggle {
-        top: 10px;
-        right: 10px;
-        width: 38px;
-        height: 38px;
-        font-size: 1.2em;
-      }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <button class="dark-toggle" id="darkToggle" title="Toggle dark mode">🌙</button>
     <h1>Enemy Drops</h1>
     <div class="search-controls">
       <select id="filterType">
@@ -257,25 +219,6 @@
 
     document.getElementById("searchInput").addEventListener("input", searchTable);
     document.getElementById("filterType").addEventListener("change", searchTable);
-
-    const darkToggle = document.getElementById('darkToggle');
-    function setDarkMode(on) {
-      if (on) {
-        document.body.classList.add('dark-mode');
-        darkToggle.textContent = '☀️';
-        localStorage.setItem('darkMode', 'on');
-      } else {
-        document.body.classList.remove('dark-mode');
-        darkToggle.textContent = '🌙';
-        localStorage.setItem('darkMode', 'off');
-      }
-    }
-    darkToggle.addEventListener('click', () => {
-      setDarkMode(!document.body.classList.contains('dark-mode'));
-    });
-    if (localStorage.getItem('darkMode') === 'on') {
-      setDarkMode(true);
-    }
 
     // Load data and show prompt
     loadData().then(() => renderTable([]));
