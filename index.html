@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Enemy Drops Search</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f4f6f8;
+      padding: 20px;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+    }
+    #searchInput {
+      width: 100%;
+      max-width: 400px;
+      margin: 20px auto;
+      display: block;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    #prompt, #noResults {
+      text-align: center;
+      margin-top: 20px;
+      color: #888;
+      font-style: italic;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: white;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+    }
+    th {
+      background-color: #007acc;
+      color: white;
+    }
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Enemy Drops</h1>
+<input type="text" id="searchInput" placeholder="Search by enemy, item, or equip type...">
+<div id="prompt">Type in the box above to search for enemy drops.</div>
+
+<table id="dropsTable" style="display: none;">
+  <thead>
+    <tr>
+      <th>Enemy</th>
+      <th>Item</th>
+      <th>Equip Type</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<div id="noResults" style="display: none;">No results found.</div>
+
+<script>
+  let allRows = [];
+
+  async function loadData() {
+    try {
+      const response = await fetch('enemy_drops_5-4-2025-9pm.json');
+      const dataObj = await response.json();
+      allRows = dataObj.rows;
+    } catch (error) {
+      console.error("Error loading JSON:", error);
+    }
+  }
+
+  function renderTable(data) {
+    const table = document.getElementById("dropsTable");
+    const tbody = table.querySelector("tbody");
+    const noResults = document.getElementById("noResults");
+    const prompt = document.getElementById("prompt");
+
+    tbody.innerHTML = '';
+
+    if (data.length === 0) {
+      table.style.display = "none";
+      if (document.getElementById("searchInput").value.trim() === "") {
+        prompt.style.display = "block";
+        noResults.style.display = "none";
+      } else {
+        prompt.style.display = "none";
+        noResults.style.display = "block";
+      }
+      return;
+    } else {
+      prompt.style.display = "none";
+      noResults.style.display = "none";
+      table.style.display = "table";
+    }
+
+    data.forEach(row => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${row.enemy}</td><td>${row.item}</td><td>${row.item_type}</td>`;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function searchTable() {
+    const term = document.getElementById("searchInput").value.toLowerCase().trim();
+    if (term === "") {
+      renderTable([]);
+      return;
+    }
+    const filtered = allRows.filter(row =>
+      row.enemy.toLowerCase().includes(term) ||
+      row.item.toLowerCase().includes(term) ||
+      row.item_type.toLowerCase().includes(term)
+    );
+    renderTable(filtered);
+  }
+
+  document.getElementById("searchInput").addEventListener("input", searchTable);
+
+  // Load data and show prompt
+  loadData().then(() => renderTable([]));
+</script>
+
+</body>
+</html>
